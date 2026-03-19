@@ -357,7 +357,7 @@ input[type=file]{display:none;}
 
 <script>
 // ── CONFIG ─────────────────────────────────────────────────
-const URL_GAS = 'https://script.google.com/macros/s/AKfycbx_czy8Tuk5aN65IJ6thI9L8XR9qzX7l52nb69ZYZNawFi_jWEUdpeJj_RqZRU7hJuf8g/exec';
+const URL_GAS = 'https://script.google.com/macros/s/AKfycbzrm8WkNJBEyNeWMK1j2dVPpo1gfUVfFr9-mlr5p36X9QDFGoavNftDxbJXV5mHD2OASA/exec';
 
 // ── DB ──────────────────────────────────────────────────────
 let db = {
@@ -409,10 +409,12 @@ async function pullFromCloud(showMsg=true){
   if(!online){ if(showMsg) toast('Sin conexión','e'); return; }
   if(showMsg) loading('Descargando datos de la nube...');
   try{
-    // Usamos fetch directo — Apps Script con acceso "Cualquier persona" responde sin CORS issues en móvil
-    const r = await fetch(URL_GAS+'?tipo=all&_='+Date.now(), {redirect:'follow'});
-    const txt = await r.text();
-    const json = JSON.parse(txt);
+    // Proxy CORS para poder leer la respuesta de Apps Script desde GitHub Pages
+    const target = encodeURIComponent(URL_GAS+'?tipo=all&_='+Date.now());
+    const proxy  = 'https://api.allorigins.win/get?url='+target;
+    const r    = await fetch(proxy);
+    const raw  = await r.json();
+    const json = JSON.parse(raw.contents);
     if(json.status==='ok' && json.data){
       if(json.data.activos)  db.srvA = json.data.activos;
       if(json.data.despiece) db.srvD = json.data.despiece;
